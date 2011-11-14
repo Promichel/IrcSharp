@@ -1,0 +1,27 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="IrcSharp" GeneratedClassName="Settings">
+  <Profiles />
+  <Settings>
+    <Setting Name="LogConsoleLevel" Type="System.Int32" Scope="Application">
+      <Value Profile="(Default)">0</Value>
+    </Setting>
+    <Setting Name="LogConsoleFormat" Type="System.String" Scope="User">
+      <Value Profile="(Default)">{0:HH:mm:ss} [{1}] {2}</Value>
+    </Setting>
+    <Setting Name="LogFileLevel" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">0</Value>
+    </Setting>
+    <Setting Name="LogFileFormat" Type="System.String" Scope="User">
+      <Value Profile="(Default)">{0:yyyy-MM-dd HH:mm:ss} [{1}] {2}</Value>
+    </Setting>
+    <Setting Name="LogFile" Type="System.String" Scope="User">
+      <Value Profile="(Default)">log.txt</Value>
+    </Setting>
+    <Setting Name="IPAddress" Type="System.String" Scope="User">
+      <Value Profile="(Default)">0.0.0.0</Value>
+    </Setting>
+    <Setting Name="Port" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">6667</Value>
+    </Setting>
+  </Settings>
+</SettingsFile>
