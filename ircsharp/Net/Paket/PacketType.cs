@@ -5,11 +5,10 @@ using System.Text;
 
 namespace IrcSharp.Net.Paket
 {
-    public class PacketHandlers
+    public enum PacketType
     {
-
-
-
-
+        NICK = 1,
+        USER = 2,
+        CAP = 3
     }
 }

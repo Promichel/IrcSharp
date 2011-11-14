@@ -47,6 +47,7 @@ namespace IrcSharp
             MaxClientConnections = 10;
 
             Logger = new Logger(this, Settings.Default.LogFile);
+            Clients = new ConcurrentDictionary<int, Client>();
             _listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
             _acceptEventArgs = new SocketAsyncEventArgs();
@@ -155,22 +156,47 @@ namespace IrcSharp
                 Interlocked.Exchange(ref client.TimesEnqueuedForRecv, 0);
                 ByteQueue bufferToProcess = client.GetBufferToProcess();
 
+                
+
                 int length = client.FragPackets.Size + bufferToProcess.Size;
-                while (length > 0)
+
+             //   int newLength = bufferToProcess.GetCommand();
+                string[] commands = bufferToProcess.GetCommands();
+                
+                if(commands.Length > 1)
                 {
-                    byte packetType = 0;
-
-                    if (client.FragPackets.Size > 0)
-                        packetType = client.FragPackets.GetPacketId();
-                    else
-                        packetType = bufferToProcess.GetPacketId();
-
-                    //client.Logger.Log(Chraft.Logger.LogLevel.Info, "Reading packet {0}", ((PacketType)packetType).ToString());
-
-                    client.Logger.Log(Logger.LogLevel.Debug, packetType.ToString());
-                    //PacketHandler handler = PacketHandlers.GetHandler((PacketType)packetType);
+                    for(int u = 0; u < commands.Length - 1; u++)
+                    {
+                        Console.WriteLine(commands[u]);
+                    }
                 }
             });
+            Console.WriteLine("Done");
+        }
+
+        private static byte[] GetBufferToBeRead(ByteQueue processedBuffer, Client client, int length)
+        {
+            int availableData = client.FragPackets.Size + processedBuffer.Size;
+
+            if (length > availableData)
+                return null;
+
+            int fromFrag;
+
+            byte[] data = new byte[length];
+
+            if (length >= client.FragPackets.Size)
+                fromFrag = client.FragPackets.Size;
+            else
+                fromFrag = length;
+
+            client.FragPackets.Dequeue(data, 0, fromFrag);
+
+            int fromProcessed = length - fromFrag;
+
+            processedBuffer.Dequeue(data, fromFrag, fromProcessed);
+
+            return data;
         }
 
         private bool OnBeforeAccept(Socket socket)

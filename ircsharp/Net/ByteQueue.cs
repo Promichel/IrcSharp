@@ -15,6 +15,7 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
 using System;
+using System.Text;
 
 namespace IrcSharp.Net
 {
@@ -93,10 +94,43 @@ namespace IrcSharp.Net
 			
 		}
 
+        public string GetPaket()
+        {
+            string line = Encoding.UTF8.GetString(_mBuffer);
+            line = line.Split('\n')[0];
+
+            
+
+            return "";
+        }
+
+        public string[] GetCommands()
+        {
+            string[] line = Encoding.UTF8.GetString(_mBuffer).Split('\n');
+
+            return line;
+
+        }
+
 		public byte GetPacketId()
 		{
-			if ( _mSize >= 1 )
-				return _mBuffer[_mHead];
+		   //string test = Encoding.UTF8.GetString(_mBuffer);
+
+            string line2 = Encoding.UTF8.GetString(_mBuffer);
+            string[] line = line2.Split('\n');
+
+            if(line.Length > 1) {
+		        int i = Encoding.UTF8.GetBytes(line[0]).Length;
+		        byte[] bla = new byte[i+1];
+
+		        Dequeue(bla, 0, bla.Length);
+                string line3 = Encoding.UTF8.GetString(bla);
+                Console.WriteLine(line3);
+            }
+           // Enqueue(Encoding.UTF8.GetBytes(line), );
+
+		//	if ( _mSize >= 1 )
+			//	return _mBuffer[_mHead];
 
 			return 0xF0;
 		}
