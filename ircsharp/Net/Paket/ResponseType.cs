@@ -7,6 +7,7 @@
         YourHost = 002,
         Created = 003,
         MyInfo = 004,
-        ISupport = 005
+        ISupport = 005,
+        NickNameInUse = 433
     }
 }

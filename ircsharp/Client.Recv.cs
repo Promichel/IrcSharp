@@ -2,6 +2,7 @@
 using System.Net.Sockets;
 using System.Threading;
 using IrcSharp.Net;
+using IrcSharp.Net.Paket.Response;
 
 namespace IrcSharp
 {
@@ -90,7 +91,16 @@ namespace IrcSharp
 
         public static void HandlePacketNick(Client client, Net.Paket.NickPaket np)
         {
+            var nickClient = client.Server.GetClientByNickname(np.Nickname.ToUpper());
+            if(nickClient != null)
+            {
+                client.SendPacket(new NickNameInUseResponse {NickName = np.Nickname});
+                return;
+            }
+
             client.ClientInfo.Nickname = np.Nickname;
+            client.Server.Nicknames.Add(np.Nickname.ToUpper(), client);
+            RegisterUser(client);
         }
 
         public static void HandlePacketUser(Client client, Net.Paket.UserPaket up)

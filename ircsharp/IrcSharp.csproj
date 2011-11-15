@@ -60,6 +60,7 @@
     <Compile Include="Net\Paket\ResponseType.cs" />
     <Compile Include="Net\Paket\Response\CreatedResponse.cs" />
     <Compile Include="Net\Paket\Response\MyInfoResponse.cs" />
+    <Compile Include="Net\Paket\Response\NickNameInUseResponse.cs" />
     <Compile Include="Net\Paket\Response\WelcomeResponse.cs" />
     <Compile Include="Net\Paket\Response\YourHostResponse.cs" />
     <Compile Include="Net\SocketAsyncEventArgsPool.cs" />

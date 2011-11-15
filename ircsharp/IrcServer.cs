@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -24,6 +25,8 @@ namespace IrcSharp
 
         public Logger Logger { get; private set; }
         private bool _running = true;
+
+        public Dictionary<string, Client> Nicknames;
 
         public int MaxClientConnections;
 
@@ -50,6 +53,7 @@ namespace IrcSharp
 
             _acceptEventArgs = new SocketAsyncEventArgs();
             _acceptEventArgs.Completed += AcceptCompletion;
+            Nicknames = new Dictionary<string, Client>();
         }
 
         public void Run()
@@ -241,5 +245,18 @@ namespace IrcSharp
             Interlocked.Increment(ref _clientDictChanges);
         }
 
+        public void DisconnectClient(Client client)
+        {
+            Clients.TryRemove(client.SessionId, out client);
+            client = null;
+        }
+
+        public Client GetClientByNickname(string nickname)
+        {
+            if(Nicknames.ContainsKey(nickname)) {
+                return Nicknames[nickname.ToUpper()];
+            }
+            return null;
+        }
     }
 }

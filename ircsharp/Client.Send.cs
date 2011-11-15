@@ -135,7 +135,8 @@ namespace IrcSharp
 
         private static void RegisterUser(Client client)
         {
-            client.SendPacket(new WelcomeResponse {Host = client.ClientInfo.Host, Nickname = client.ClientInfo.Nickname, Username = client.ClientInfo.Username});
+            if(client.ClientInfo.IsRegistered && client.ClientInfo.Nickname != null)
+                client.SendPacket(new WelcomeResponse {Host = client.ClientInfo.Host, Nickname = client.ClientInfo.Nickname, Username = client.ClientInfo.Username});
         }
 
     }
