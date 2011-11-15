@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net.Sockets;
-using System.Text;
 using System.Threading;
 using IrcSharp.Net;
 
@@ -12,9 +9,9 @@ namespace IrcSharp
     {
 
         public int TimesEnqueuedForRecv;
-        private readonly object _QueueSwapLock = new object();
+        private readonly object _queueSwapLock = new object();
 
-        private void Recv_Start()
+        private void RecvStart()
         {
             if (!Running)
             {
@@ -33,17 +30,15 @@ namespace IrcSharp
                 bool pending = _socket.ReceiveAsync(_recvSocketEvent);
 
                 if (!pending)
-                    Recv_Completed(null, _recvSocketEvent);
+                    RecvCompleted(null, _recvSocketEvent);
             }
-            catch (Exception e)
+            catch
             {
-             //   Server.Logger.Log(Chraft.Logger.LogLevel.Error, e.Message);
-             //   Stop();
             }
 
         }
 
-        private void Recv_Completed(object sender, SocketAsyncEventArgs e)
+        private void RecvCompleted(object sender, SocketAsyncEventArgs e)
         {
             //if (!Running)
              //   DisposeRecvSystem();
@@ -62,13 +57,13 @@ namespace IrcSharp
             {
                 if (DateTime.Now + TimeSpan.FromSeconds(5) > _nextActivityCheck)
                     _nextActivityCheck = DateTime.Now + TimeSpan.FromSeconds(5);
-                Recv_Process(e);
+                RecvProcess(e);
             }
         }
 
-        private void Recv_Process(SocketAsyncEventArgs e)
+        private void RecvProcess(SocketAsyncEventArgs e)
         {
-            lock (_QueueSwapLock)
+            lock (_queueSwapLock)
                 _currentBuffer.Enqueue(e.Buffer, 0, e.BytesTransferred);
 
             int newValue = Interlocked.Increment(ref TimesEnqueuedForRecv);
@@ -78,12 +73,12 @@ namespace IrcSharp
 
             Server.NetworkSignal.Set();
 
-            Recv_Start();
+            RecvStart();
         }
 
         public ByteQueue GetBufferToProcess()
         {
-            lock (_QueueSwapLock)
+            lock (_queueSwapLock)
             {
                 ByteQueue temp = _currentBuffer;
                 _currentBuffer = _processedBuffer;
@@ -93,5 +88,21 @@ namespace IrcSharp
             return _processedBuffer;
         }
 
+        public static void HandlePacketNick(Client client, Net.Paket.NickPaket np)
+        {
+            client.ClientInfo.Nickname = np.Nickname;
+        }
+
+        public static void HandlePacketUser(Client client, Net.Paket.UserPaket up)
+        {
+            client.ClientInfo.Username = up.Username;
+            client.ClientInfo.RealName = up.RealName;
+            client.ClientInfo.Host = up.Hostname;
+            if(client.ClientInfo.Nickname != null)
+            {
+                client.ClientInfo.IsRegistered = true;
+                RegisterUser(client);
+            }
+        }
     }
 }

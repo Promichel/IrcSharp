@@ -94,69 +94,12 @@ namespace IrcSharp.Net
 			
 		}
 
-        public string GetPaket()
-        {
-            string line = Encoding.UTF8.GetString(_mBuffer);
-            line = line.Split('\n')[0];
-
-            
-
-            return "";
-        }
-
         public string[] GetCommands()
         {
             string[] line = Encoding.UTF8.GetString(_mBuffer).Split('\n');
 
             return line;
 
-        }
-
-		public byte GetPacketId()
-		{
-		   //string test = Encoding.UTF8.GetString(_mBuffer);
-
-            string line2 = Encoding.UTF8.GetString(_mBuffer);
-            string[] line = line2.Split('\n');
-
-            if(line.Length > 1) {
-		        int i = Encoding.UTF8.GetBytes(line[0]).Length;
-		        byte[] bla = new byte[i+1];
-
-		        Dequeue(bla, 0, bla.Length);
-                string line3 = Encoding.UTF8.GetString(bla);
-                Console.WriteLine(line3);
-            }
-           // Enqueue(Encoding.UTF8.GetBytes(line), );
-
-		//	if ( _mSize >= 1 )
-			//	return _mBuffer[_mHead];
-
-			return 0xF0;
-		}
-
-        public int CopyAll(byte[] buffer)
-        {
-            if (_mHead < _mTail)
-            {
-                Buffer.BlockCopy(_mBuffer, _mHead, buffer, 0, _mSize);
-            }
-            else
-            {
-                int rightLength = (_mBuffer.Length - _mHead);
-
-                if (rightLength >= _mSize)
-                {
-                    Buffer.BlockCopy(_mBuffer, _mHead, buffer, 0, _mSize);
-                }
-                else
-                {
-                    Buffer.BlockCopy(_mBuffer, _mHead, buffer, 0, rightLength);
-                    Buffer.BlockCopy(_mBuffer, 0, buffer, 0 + rightLength, _mSize - rightLength);
-                }
-            }
-
-            return _mSize;
         }
 
 		public int Dequeue( byte[] buffer, int offset, int size )

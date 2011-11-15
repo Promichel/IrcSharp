@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+﻿using System.IO;
 using System.Text;
 
 namespace IrcSharp.Net
@@ -14,6 +11,11 @@ namespace IrcSharp.Net
         {
             get { return _stream; }
             set { _stream = value; }
+        }
+
+        public PaketWriter()
+        {
+            _stream = new MemoryStream();
         }
 
         public void Write(string text)

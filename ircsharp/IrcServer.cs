@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -16,8 +14,8 @@ namespace IrcSharp
     {
 
         private int _nextSessionId;
-        private Socket _listener;
-        private SocketAsyncEventArgs _acceptEventArgs;
+        private readonly Socket _listener;
+        private readonly SocketAsyncEventArgs _acceptEventArgs;
 
         public static ConcurrentQueue<Client> RecvClientQueue = new ConcurrentQueue<Client>();
         public static ConcurrentQueue<Client> SendClientQueue = new ConcurrentQueue<Client>();
@@ -46,12 +44,12 @@ namespace IrcSharp
             //todo: Make it dynamic :)
             MaxClientConnections = 10;
 
-            Logger = new Logger(this, Settings.Default.LogFile);
+            Logger = new Logger(Settings.Default.LogFile);
             Clients = new ConcurrentDictionary<int, Client>();
             _listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
             _acceptEventArgs = new SocketAsyncEventArgs();
-            _acceptEventArgs.Completed += Accept_Completion;
+            _acceptEventArgs.Completed += AcceptCompletion;
         }
 
         public void Run()
@@ -74,7 +72,7 @@ namespace IrcSharp
             Logger.Log(Logger.LogLevel.Info, "Listening on port {0}.", Settings.Default.Port);
 
             IPAddress address = IPAddress.Parse(Settings.Default.IPAddress);
-            IPEndPoint ipEndPoint = new IPEndPoint(address, Settings.Default.Port);
+            var ipEndPoint = new IPEndPoint(address, Settings.Default.Port);
 
             _listener.Bind(ipEndPoint);
             _listener.Listen(5);
@@ -89,10 +87,9 @@ namespace IrcSharp
         }
 
         public AutoResetEvent NetworkSignal = new AutoResetEvent(true);
-        private int _asyncAccepts = 0;
+        private int _asyncAccepts;
         private Task _readClientsPackets;
         private Task _sendClientPackets;
-        private Task _disposeClients;
 
         private void RunNetwork()
         {
@@ -112,12 +109,12 @@ namespace IrcSharp
                 {
                     _disposeClients = Task.Factory.StartNew(DisposeClients);
                 }
-
+                 * */
                 if (!SendClientQueue.IsEmpty && (_sendClientPackets == null || _sendClientPackets.IsCompleted))
                 {
                     _sendClientPackets = Task.Factory.StartNew(ProcessSendQueue);
                 }
-                 * */
+                
             }
         }
 
@@ -156,79 +153,75 @@ namespace IrcSharp
                 Interlocked.Exchange(ref client.TimesEnqueuedForRecv, 0);
                 ByteQueue bufferToProcess = client.GetBufferToProcess();
 
-                
-
-                int length = client.FragPackets.Size + bufferToProcess.Size;
-
-             //   int newLength = bufferToProcess.GetCommand();
                 string[] commands = bufferToProcess.GetCommands();
                 
                 if(commands.Length > 1)
                 {
                     for(int u = 0; u < commands.Length - 1; u++)
                     {
-                        Console.WriteLine(commands[u]);
+                        int index = commands[u].IndexOf(' ');
+                        var myEnum = (PacketType)Enum.Parse(typeof(PacketType), commands[u].Substring(0,index));
+
+                        PacketHandler handler = PacketHandlers.GetHandler(myEnum);
+
+                        if(handler != null)
+                            handler.OnReceive(client, Encoding.UTF8.GetBytes(commands[u]));
+                        else
+                        {
+                                client.Logger.Log(Logger.LogLevel.Error, "Command unknown: " + commands[u]);
+                        }
                     }
                 }
             });
-            Console.WriteLine("Done");
         }
 
-        private static byte[] GetBufferToBeRead(ByteQueue processedBuffer, Client client, int length)
+        public static void ProcessSendQueue()
         {
-            int availableData = client.FragPackets.Size + processedBuffer.Size;
+            int count = SendClientQueue.Count;
 
-            if (length > availableData)
-                return null;
+            Parallel.For(0, count, i =>
+            {
+                Client client;
+                if (!SendClientQueue.TryDequeue(out client))
+                    return;
 
-            int fromFrag;
+                if (!client.Running)
+                {
+                    client.DisposeSendSystem();
+                    return;
+                }
 
-            byte[] data = new byte[length];
-
-            if (length >= client.FragPackets.Size)
-                fromFrag = client.FragPackets.Size;
-            else
-                fromFrag = length;
-
-            client.FragPackets.Dequeue(data, 0, fromFrag);
-
-            int fromProcessed = length - fromFrag;
-
-            processedBuffer.Dequeue(data, fromFrag, fromProcessed);
-
-            return data;
+                client.SendStart();
+            });
         }
 
         private bool OnBeforeAccept(Socket socket)
         {
             if (BeforeAccept != null)
             {
-                TcpEventArgs e = new TcpEventArgs(socket);
+                var e = new TcpEventArgs(socket);
                 BeforeAccept.Invoke(this, e);
                 return !e.Cancelled;
             }
             return true;
         }
 
-        private void Accept_Completion(object sender, SocketAsyncEventArgs e)
+        private void AcceptCompletion(object sender, SocketAsyncEventArgs e)
         {
-            Accept_Process(e);
+            AcceptProcess(e);
         }
 
-        private void Accept_Process(SocketAsyncEventArgs e)
+        private void AcceptProcess(SocketAsyncEventArgs e)
         {
             if (OnBeforeAccept(e.AcceptSocket))
             {
                 Interlocked.Increment(ref _nextSessionId);
-                Client c = new Client(_nextSessionId, this, e.AcceptSocket);
+                var c = new Client(_nextSessionId, this, e.AcceptSocket);
 
                 c.Start();
 
                 AddClient(c);
                 Logger.Log(Logger.LogLevel.Info, "Clients online: {0}", Clients.Count);
-
-                //Logger.Log(Chraft.Logger.LogLevel.Info, "Starting client");
-                //OnJoined(c);
             }
             else
             {

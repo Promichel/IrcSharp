@@ -22,15 +22,12 @@ namespace IrcSharp
 	public class Logger
 	{
 		private readonly StreamWriter _writeLog;
-        private IrcServer _server;
 
-		internal Logger(IrcServer server, string file)
+	    internal Logger(string file)
 		{
-            _server = server;
-			try
+		    try
 			{
-				_writeLog = new StreamWriter(file, true);
-				_writeLog.AutoFlush = true;
+			    _writeLog = new StreamWriter(file, true) {AutoFlush = true};
 			}
 			catch
 			{
@@ -109,7 +106,7 @@ namespace IrcSharp
 		}
 
 
-		public enum LogLevel : int
+		public enum LogLevel
 		{
 			Trivial = -1,
 			Debug = 0,

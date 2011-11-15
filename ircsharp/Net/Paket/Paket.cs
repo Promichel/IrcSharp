@@ -1,6 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.IO;
 using System.Text;
 
 namespace IrcSharp.Net.Paket
@@ -8,45 +7,80 @@ namespace IrcSharp.Net.Paket
     public abstract class Paket
     {
         public const string ServerCrLf = "\r\n";
+        public const string NumericFormat = "{0:000}";
 
         public abstract void Read(byte[] reader);
         public abstract void Write();
 
         protected PaketWriter Writer;
 
-        public class NickPaket : Paket
+        public MemoryStream Stream
         {
-            public string Username { get; set; }
-            
-            public override void Read(byte[] reader)
-            {
-                Username = Encoding.UTF8.GetString(reader).Substring(4);
-            }
-
-            public override void Write()
-            {
-                StringBuilder builder = new StringBuilder("NICK ");
-                builder.Append(Username);
-                Writer.Write(builder + ServerCrLf);
-            }
+            get { return Writer.UnderlyingStream; }
         }
 
-        public class UserPaket : Paket
+        protected Paket()
         {
-            public string Username { get; set; }
-            public string Hostname { get; set; }
-            public string ServerName { get; set; }
-            public string RealName { get; set; }
+            Writer = new PaketWriter();
+        }
+    }
 
-            public override void Read(byte[] reader)
-            {
-                throw new NotImplementedException();
-            }
+    public class NickPaket : Paket
+    {
+        public string Nickname { get; set; }
 
-            public override void Write()
+        public override void Read(byte[] reader)
+        {
+            Nickname = Encoding.UTF8.GetString(reader).Substring(5);
+        }
+
+        public override void Write()
+        {
+            var builder = new StringBuilder("NICK ");
+            builder.Append(Nickname);
+            Writer.Write(builder + ServerCrLf);
+        }
+    }
+
+    public class UserPaket : Paket
+    {
+        public string Username { get; set; }
+        public string Hostname { get; set; }
+        public string ServerName { get; set; }
+        public string RealName { get; set; }
+
+        public override void Read(byte[] reader)
+        {
+            string userCommand = Encoding.UTF8.GetString(reader).Substring(5);
+            int index = userCommand.IndexOf(':');
+            string[] parameters = userCommand.Substring(0, index).Split(' ');
+            if (parameters.Length != 4)
             {
-                throw new NotImplementedException();
+                //todo: implement Paket
+                throw new Exception("Not enough parameters!");
             }
+            Username = parameters[0];
+            Hostname = parameters[1];
+            ServerName = parameters[2];
+            RealName = userCommand.Substring(index + 1);
+        }
+
+        public override void Write()
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    public class CapPaket : Paket
+    {
+        public override void Read(byte[] reader)
+        {
+            
+        }
+
+        public override void Write()
+        {
+            
         }
     }
 }

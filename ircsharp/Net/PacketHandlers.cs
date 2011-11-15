@@ -17,7 +17,9 @@ namespace IrcSharp.Net
         {
             m_Handlers = new PacketHandler[0x100];
 
+            Register(PacketType.CAP, ReadCap);
             Register(PacketType.NICK, ReadNick);
+            Register(PacketType.USER, ReadUser);
         }
 
         public static void Register(PacketType packetId, OnPacketReceive onReceive)
@@ -31,6 +33,30 @@ namespace IrcSharp.Net
         }
 
         public static void ReadNick(Client client, byte[] data)
+        {
+            NickPaket np = new NickPaket();
+            np.Read(data);
+
+            if(np.Nickname != null)
+            {
+                Client.HandlePacketNick(client, np);
+            }
+        }
+
+        public static void ReadUser(Client client, byte[] data)
+        {
+
+            UserPaket up = new UserPaket();
+            up.Read(data);
+
+            if(up.RealName != null)
+            {
+                Client.HandlePacketUser(client, up);
+            }
+
+        }
+
+        public static void ReadCap(Client client, byte[] data)
         {
             
         }

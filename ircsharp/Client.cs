@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net.Sockets;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
+using IrcSharp.Entities;
 using IrcSharp.Net;
 
 namespace IrcSharp
@@ -19,7 +16,6 @@ namespace IrcSharp
 
         private ByteQueue _currentBuffer;
         private ByteQueue _processedBuffer;
-        private ByteQueue _fragPackets;
 
         public static SocketAsyncEventArgsPool SendSocketEventPool = new SocketAsyncEventArgsPool(10);
         public static SocketAsyncEventArgsPool RecvSocketEventPool = new SocketAsyncEventArgsPool(10);
@@ -35,6 +31,7 @@ namespace IrcSharp
         private readonly object _disposeLock = new object();
 
         public int SessionId { get; private set; }
+        public ClientInfo ClientInfo { get; set; }
         private DateTime _nextActivityCheck;
 
         /// <summary>
@@ -42,11 +39,7 @@ namespace IrcSharp
         /// </summary>
         public Logger Logger { get { return Server.Logger; } }
 
-        public ByteQueue FragPackets
-        {
-            get { return _fragPackets; }
-            set { _fragPackets = value; }
-        }
+        public ByteQueue FragPackets { get; set; }
 
         public Client(int sessionId, IrcServer server, Socket socket)
         {
@@ -55,9 +48,11 @@ namespace IrcSharp
             Server = server;
             _socket = socket;
 
+            ClientInfo = new ClientInfo();
+
             _currentBuffer = new ByteQueue();
             _processedBuffer = new ByteQueue();
-            _fragPackets = new ByteQueue();
+            FragPackets = new ByteQueue();
 
             _nextActivityCheck = DateTime.Now + TimeSpan.FromSeconds(30);
         }
@@ -70,12 +65,27 @@ namespace IrcSharp
             _recvBuffer = RecvBufferPool.AcquireBuffer();
 
             _recvSocketEvent.SetBuffer(_recvBuffer, 0, _recvBuffer.Length);
-            _recvSocketEvent.Completed += new EventHandler<SocketAsyncEventArgs>(Recv_Completed);
-            _sendSocketEvent.Completed += new EventHandler<SocketAsyncEventArgs>(Send_Completed);
+            _recvSocketEvent.Completed += RecvCompleted;
+            _sendSocketEvent.Completed += Send_Completed;
 
-            Task.Factory.StartNew(Recv_Start);
+            Task.Factory.StartNew(RecvStart);
         }
 
+        public void DisposeSendSystem()
+        {
+            lock (_disposeLock)
+            {
+                if (!_sendSystemDisposed)
+                {
+                    _sendSystemDisposed = true;
+                    if (_recvSystemDisposed)
+                    {
+                        IrcServer.ClientsToDispose.Enqueue(this);
+                        Server.NetworkSignal.Set();
+                    }
+                }
+            }
+        }
 
     }
 }

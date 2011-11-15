@@ -24,5 +24,13 @@ namespace IrcSharp.Net
             _packetId = type;
             _onReceive = onReceive;
         }
+
+        public PacketHandler(ResponseType type, OnPacketReceive onReceive)
+        {
+            _responseId = type;
+            _onReceive = onReceive;
+        }
+
+
     }
 }
