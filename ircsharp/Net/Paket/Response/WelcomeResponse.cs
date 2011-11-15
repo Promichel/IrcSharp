@@ -16,10 +16,9 @@ namespace IrcSharp.Net.Paket.Response
 
         public override void Write()
         {
-            var builder = new StringBuilder();
+            var builder = new StringBuilder(DefaultResponsePrefix);
             builder.AppendFormat(NumericFormat, (int) ResponseType.Welcome);
-            builder.Append(" ");
-            builder.Append("Welcome to the Internet Relay Network");
+            builder.Append(" :Welcome to the Internet Relay Network");
             builder.Append(" ");
             builder.Append(Nickname);
             builder.Append("!");

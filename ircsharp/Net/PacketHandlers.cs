@@ -20,6 +20,7 @@ namespace IrcSharp.Net
             Register(PacketType.CAP, ReadCap);
             Register(PacketType.NICK, ReadNick);
             Register(PacketType.USER, ReadUser);
+            Register(PacketType.PONG, ReadPong);
         }
 
         public static void Register(PacketType packetId, OnPacketReceive onReceive)
@@ -59,6 +60,17 @@ namespace IrcSharp.Net
         public static void ReadCap(Client client, byte[] data)
         {
             
+        }
+
+        public static void ReadPong(Client client, byte[] data)
+        {
+            PongPaket pp = new PongPaket();
+            pp.Read(data);
+
+            if(pp.Message != null)
+            {
+                Client.HandlePacketPong(client, pp);
+            }
         }
     }
 }

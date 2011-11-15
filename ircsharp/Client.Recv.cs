@@ -104,5 +104,13 @@ namespace IrcSharp
                 RegisterUser(client);
             }
         }
+
+        public static void HandlePacketPong(Client client, Net.Paket.PongPaket pp)
+        {
+            if(pp.Message == Settings.Default.ServerName)
+            {
+                client._nextActivityCheck = DateTime.Now + TimeSpan.FromSeconds(30);
+            }
+        }
     }
 }

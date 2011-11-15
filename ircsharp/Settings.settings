@@ -23,5 +23,14 @@
     <Setting Name="Port" Type="System.Int32" Scope="User">
       <Value Profile="(Default)">6667</Value>
     </Setting>
+    <Setting Name="ServerHost" Type="System.String" Scope="User">
+      <Value Profile="(Default)">localhost</Value>
+    </Setting>
+    <Setting Name="ServerName" Type="System.String" Scope="User">
+      <Value Profile="(Default)">IrcSharp</Value>
+    </Setting>
+    <Setting Name="ServerVersion" Type="System.String" Scope="User">
+      <Value Profile="(Default)">ircsharp-1.0b</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

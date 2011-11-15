@@ -8,6 +8,7 @@ namespace IrcSharp.Net.Paket
     {
         public const string ServerCrLf = "\r\n";
         public const string NumericFormat = "{0:000}";
+        public static readonly string DefaultResponsePrefix = ":"+Settings.Default.ServerHost + " ";
 
         public abstract void Read(byte[] reader);
         public abstract void Write();
@@ -81,6 +82,37 @@ namespace IrcSharp.Net.Paket
         public override void Write()
         {
             
+        }
+    }
+
+    public class PongPaket : Paket
+    {
+        public string Message { get; set; }
+
+        public override void Read(byte[] reader)
+        {
+            Message = Encoding.UTF8.GetString(reader).Substring(5);
+        }
+
+        public override void Write()
+        {
+            var builder = new StringBuilder("PING ");
+            builder.Append(Message);
+
+            Writer.Write(builder + ServerCrLf);
+        }
+    }
+
+    public class UserHostPaket : Paket
+    {
+        public override void Read(byte[] reader)
+        {
+            //throw new NotImplementedException();
+        }
+
+        public override void Write()
+        {
+            //throw new NotImplementedException();
         }
     }
 }

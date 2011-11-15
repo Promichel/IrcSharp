@@ -103,5 +103,41 @@ namespace IrcSharp {
                 this["Port"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("localhost")]
+        public string ServerHost {
+            get {
+                return ((string)(this["ServerHost"]));
+            }
+            set {
+                this["ServerHost"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("IrcSharp")]
+        public string ServerName {
+            get {
+                return ((string)(this["ServerName"]));
+            }
+            set {
+                this["ServerName"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("ircsharp-1.0b")]
+        public string ServerVersion {
+            get {
+                return ((string)(this["ServerVersion"]));
+            }
+            set {
+                this["ServerVersion"] = value;
+            }
+        }
     }
 }
