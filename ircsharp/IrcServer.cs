@@ -159,7 +159,7 @@ namespace IrcSharp
                 {
                     for(int u = 0; u < commands.Length - 1; u++)
                     {
-                        Console.WriteLine(commands[u]);
+                        client.Logger.Log(Logger.LogLevel.Debug, commands[u]);
                         int index = commands[u].IndexOf(' ');
                         var myEnum = (PacketType)Enum.Parse(typeof(PacketType), commands[u].Substring(0,index));
 
